@@ -1,4 +1,4 @@
-#TIPODICONTROLLO;DESCRIZIONE CHE ACCETTA ANCHE LE TABULAZIONI;HOST[;OPTION]
+#TIPODICONTROLLO;DESCRIZIONE;HOST[;OPTION]
 #tipologie di controlli:
 #iochtml: si aspetta di trovare un file con dentro scritto iocisono
 #ping: effettua un ping
@@ -7,8 +7,8 @@
 #
 #
 #example
-ping;CloudFlare DNS           ;1.1.1.1
-porta;Https su Repubblica       ;www.repubblica.it;443
-porta;SMTP Gmail                ;gmail-smtp-in.l.google.com;25
-porta;TestDown            ;11.22.33.44;11111
-strhtml;Mozilla IT              ;https://www.mozilla.org/it/;Newsletter-mozilla-and-you
+ping;CloudFlare DNS;1.1.1.1
+porta;Https su Repubblica;www.repubblica.it;443
+porta;SMTP Gmail;gmail-smtp-in.l.google.com;25
+porta;TestDown;11.22.33.44;11111
+strhtml;Mozilla IT;https://www.mozilla.org/it/;Newsletter-mozilla-and-you
