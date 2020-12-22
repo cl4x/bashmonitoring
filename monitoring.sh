@@ -1,15 +1,5 @@
 #!/bin/bash
 
-if [ -f monitoring.conf ]; then 
-        SLEEPTIME=$( cat monitoring.conf | grep "^SLEEPTIME" | awk -F"=" '{ print $2 }' );
-        SLEEPPROC=$( cat monitoring.conf | grep "^SLEEPPROC" | awk -F"=" '{ print $2 }' );
-else
-        echo "SLEEPTIME=5" > monitoring.conf;
-        echo "SLEEPPROC=10" >> monitoring.conf;
-        SLEEPTIME=5;
-        SLEEPPROC=10;
-fi
-
 echo "Controllo preliminare..."
 INNMAP=$( apt list nmap | grep installato | wc -l )
 if [ "$INNMAP" != "1" ]; then echo "Installo NMAP..."; apt install nmap; fi
@@ -31,20 +21,28 @@ TOTCHECK=1
 clear
 
 check () {
-
+        if [ -f monitoring.conf ]; then
+                SLEEPTIME=$( cat monitoring.conf | grep "^SLEEPTIME" | awk -F"=" '{ print $2 }' );
+                SLEEPPROC=$( cat monitoring.conf | grep "^SLEEPPROC" | awk -F"=" '{ print $2 }' );
+        else
+                echo "SLEEPTIME=5" > monitoring.conf;
+                echo "SLEEPPROC=10" >> monitoring.conf;
+                SLEEPTIME=5;
+                SLEEPPROC=10;
+        fi
         COUNT=1
         TOTCOUNT=$( cat monitoring.hosts | grep -v "^#" | wc -l )
 
         tput cup 0 0; echo -e "$YELLOW ============================================================================ $TOTCHECK ===================================================================================="
-        tput cup 0 10; echo $( date +%c )
-        tput cup 1 0; echo -e "$GREEN$BLINK >>> Running... $NC";
+        tput cup 0 25; echo $( date +%c )
+        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
 
         while [ $COUNT -le $TOTCOUNT ]; do
                 ACTTIPO=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $1 }' )
                 ACTDESCR=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $2 }' )
                 ACTHOST=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $3 }' )
                 ACTOPZIONE=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $4 }' )
-                let ACTVIDEOLINE=COUNT+1;
+                let ACTVIDEOLINE=COUNT;
                 let ACTVIDEOLINEPRE=ACTVIDEOLINE-1;
 
                 if [ "$ACTTIPO" == "iochtml" ]; then
@@ -67,31 +65,31 @@ check () {
                         tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
                         tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
                         tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
-                        tput cup $ACTVIDEOLINE 10; echo -e "$GREEN [ Host UP ]$NC";
-                        tput cup $ACTVIDEOLINE 25; echo -e "$YELLOW $ACTDESCR";
-                        tput cup $ACTVIDEOLINE 60; echo -e "$CYAN Tipologia controllo $GREEN $ACTTIPO"
-                        tput cup $ACTVIDEOLINE 100; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
+                        tput cup $ACTVIDEOLINE 6; echo -e "$GREEN [ Host UP ]$NC";
+                        tput cup $ACTVIDEOLINE 20; echo -e "$YELLOW $ACTDESCR";
+                        tput cup $ACTVIDEOLINE 53; echo -e "$CYAN Tipologia controllo $GREEN $ACTTIPO"
+                        tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
                 else 
                         tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
                         tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
                         tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
-                        tput cup $ACTVIDEOLINE 10; echo -e "$RED$BLINK [ Host DOWN ]$NC"
-                        tput cup $ACTVIDEOLINE 25; echo -e "$NC$BGREDWHITE $ACTDESCR $NC$CYAN$BLINK"
-                        tput cup $ACTVIDEOLINE 60; echo -e " Tipologia controllo $RED $ACTTIPO";
-                        tput cup $ACTVIDEOLINE 100; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
+                        tput cup $ACTVIDEOLINE 6; echo -e "$RED$BLINK [Host DOWN]$NC"
+                        tput cup $ACTVIDEOLINE 20; echo -e "$NC$BGREDWHITE $ACTDESCR $NC$CYAN$BLINK"
+                        tput cup $ACTVIDEOLINE 53; echo -e " Tipologia controllo $RED $ACTTIPO";
+                        tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
                 fi
 
                 let COUNT=COUNT+1
                 if [ $TOTCHECK -gt 1 ]; then 
-                        tput cup 1 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC"; 
+                        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC"; 
                         sleep $SLEEPTIME; 
-                        tput cup 1 0; echo -e "$GREEN$BLINK >>> Running... $NC"; 
+                        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; 
                 fi
         done
         tput cup $ACTVIDEOLINE 0; echo -e "  "
-        tput cup 1 1; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
+        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
         sleep $SLEEPPROC; 
-        tput cup 1 1; echo -e "$GREEN$BLINK >>> Running... $NC"; 
+        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; 
         let TOTCHECK=TOTCHECK+1
         check
 }
