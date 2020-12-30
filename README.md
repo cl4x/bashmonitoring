@@ -9,3 +9,7 @@ need: curl and nmap
 ----- update -----
 - add log
 - add retry
+
+
+---------------
+info: https://claudiodabbicco.blogspot.com/2020/12/monitorare-gli-host-in-maniera-semplice.html
