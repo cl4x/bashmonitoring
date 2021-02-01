@@ -4,10 +4,18 @@ echo "Controllo preliminare..."
 INNMAP=$( apt list nmap | grep installato | wc -l )
 if [ "$INNMAP" != "1" ]; then echo "Installo NMAP..."; apt install nmap; fi
 INCURL=$( apt list nmap | grep installato | wc -l )
-if [ "$INCURL" != "1" ]; then echo "Installo CURL..."; apt install nmap; fi
+if [ "$INCURL" != "1" ]; then echo "Installo CURL..."; apt install curl; fi
 
+MYNAME=$( cat monitoring.conf | grep "^MYNAME" | awk -F"=" '{ print $2 }' );
 LOGENABLE=$( cat monitoring.conf | grep "^LOGENABLE" | awk -F"=" '{ print $2 }' );
 LOGPATH=$( cat monitoring.conf | grep "^LOGPATH" | awk -F"=" '{ print $2 }' );
+TELEGRAMBOTENABLE=$( cat monitoring.conf | grep "^TELEGRAMBOTENABLE" | awk -F"=" '{ print $2 }' );
+TELEGRAMAPIBOT=$( cat monitoring.conf | grep "^TELEGRAMAPIBOT" | awk -F"=" '{ print $2 }' );
+TELEGRAMCHATID=$( cat monitoring.conf | grep "^TELEGRAMCHATID" | awk -F"=" '{ print $2 }' );
+
+
+if [ -f monitoring.downstate ]; then rm monitoring.downstate; fi
+touch monitoring.downstate
 
 
 red='\e[0;31m'
@@ -124,6 +132,18 @@ check () {
                         tput cup $ACTVIDEOLINE 20; echo -e "$YELLOW $ACTDESCR";
                         tput cup $ACTVIDEOLINE 53; echo -e "$CYAN Tipologia controllo $GREEN $ACTTIPO"
                         tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
+                        DOWNSTATE=$( cat monitoring.downstate | grep "$ACTDESCR" | wc -l )
+                        if [ "$DOWNSTATE" == "1" ]; then
+                                if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
+                                        DATALOG=$( date +%c );
+                                        echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
+                                fi;
+                                if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
+                                        FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_UP!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST</i>&parse_mode=html";
+                                        curl -s "$FRASE" > /dev/null;
+                                fi;
+                                sed -i /$ACTDESCR/d monitoring.downstate > /dev/null;
+                        fi;
                 else 
                         tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
                         tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
@@ -132,9 +152,17 @@ check () {
                         tput cup $ACTVIDEOLINE 20; echo -e "$NC$BGREDWHITE $ACTDESCR $NC$CYAN$BLINK"
                         tput cup $ACTVIDEOLINE 53; echo -e " Tipologia controllo $RED $ACTTIPO";
                         tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $RED $ACTHOST $NC";
-                        if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
-                                DATALOG=$( date +%c );
-                                echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
+                        DOWNSTATE=$( cat monitoring.downstate | grep "$ACTDESCR" | wc -l )
+                        if [ "$DOWNSTATE" == "0" ]; then
+                                if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
+                                        DATALOG=$( date +%c );
+                                        echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
+                                fi;
+                                if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
+                                        FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_DOWN!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST - Tentativi $RETRY</i>&parse_mode=html";
+                                        curl -s "$FRASE" > /dev/null;
+                                fi;
+                                echo "$ACTDESCR" >> monitoring.downstate;
                         fi;
                 fi
 
