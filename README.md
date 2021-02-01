@@ -9,6 +9,8 @@ need: curl and nmap
 ----- update -----
 - add log
 - add retry
+- add monitoring server name
+- add Telegram API for alerting on Group
 
 
 ---------------
