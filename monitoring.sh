@@ -37,12 +37,16 @@ check () {
                 SLEEPTIME=$( cat monitoring.conf | grep "^SLEEPTIME" | awk -F"=" '{ print $2 }' );
                 SLEEPPROC=$( cat monitoring.conf | grep "^SLEEPPROC" | awk -F"=" '{ print $2 }' );
                 RETRY=$( cat monitoring.conf | grep "^RETRY" | awk -F"=" '{ print $2 }' );
+                DAYFROM=$( cat monitoring.conf | grep "^DAYFROM" | awk -F"=" '{ print $2 }' );
+                DAYTO=$( cat monitoring.conf | grep "^DAYTO" | awk -F"=" '{ print $2 }' );
         else
                 echo "SLEEPTIME=5" > monitoring.conf;
                 echo "SLEEPPROC=10" >> monitoring.conf;
                 echo "RETRY=2" >> monitoring.conf;
                 echo "LOGENABLE=1" >> monitoring.conf;
                 echo "LOGPATH=monitoring.log" >> monitoring.conf;
+                echo "DAYFROM=7" >> monitoring.conf;
+                echo "DAYTO=19" >> monitoring.conf;
                 SLEEPTIME=5;
                 SLEEPPROC=10;
                 RETRY=2;
@@ -57,10 +61,11 @@ check () {
         tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
 
         while [ $COUNT -le $TOTCOUNT ]; do
-                ACTTIPO=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $1 }' )
-                ACTDESCR=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $2 }' )
-                ACTHOST=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $3 }' )
-                ACTOPZIONE=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $4 }' )
+                ACTNOTIFICA=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $1 }' )
+                ACTTIPO=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $2 }' )
+                ACTDESCR=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $3 }' )
+                ACTHOST=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $4 }' )
+                ACTOPZIONE=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $5 }' )
                 let ACTVIDEOLINE=COUNT;
                 let ACTVIDEOLINEPRE=ACTVIDEOLINE-1;
 
@@ -139,8 +144,13 @@ check () {
                                         echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
                                 fi;
                                 if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
-                                        FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_UP!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST</i>&parse_mode=html";
-                                        curl -s "$FRASE" > /dev/null;
+                                        NOTIFICAUNO=0; 
+                                        ORANOW=$( date +%k | awk '{ print $1 }' );
+                                        if [ "$ACTNOTIFICA" == "1" ] && [ $ORANOW -ge $DAYFROM ] && [ $ORANOW -le $DAYTO ]; then NOTIFICAUNO=1; fi;
+                                        if [ "$ACTNOTIFICA" == "2" ] || [ "$NOTIFICAUNO" == "1" ]; then
+                                                FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_UP!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST</i>&parse_mode=html";
+                                                curl -s "$FRASE" > /dev/null;
+                                        fi;
                                 fi;
                                 sed -i /$ACTDESCR/d monitoring.downstate > /dev/null;
                         fi;
@@ -159,8 +169,13 @@ check () {
                                         echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
                                 fi;
                                 if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
-                                        FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_DOWN!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST - Tentativi $RETRY</i>&parse_mode=html";
-                                        curl -s "$FRASE" > /dev/null;
+                                        NOTIFICAUNO=0; 
+                                        ORANOW=$( date +%k | awk '{ print $1 }' );
+                                        if [ "$ACTNOTIFICA" == "1" ] && [ $ORANOW -ge $DAYFROM ] && [ $ORANOW -le $DAYTO ]; then NOTIFICAUNO=1; fi;
+                                        if [ "$ACTNOTIFICA" == "2" ] || [ "$NOTIFICAUNO" == "1" ]; then
+                                                FRASE="https://api.telegram.org/bot$TELEGRAMAPIBOT/sendMessage?chat_id=$TELEGRAMCHATID&text=Bash Monitoring $MYNAME: <b>!!!!!HOST_DOWN!!!!!</b> $ACTDESCR - <i>TipologiaControllo $ACTTIPO - VerificaHost $ACTHOST - Tentativi $RETRY</i>&parse_mode=html";
+                                                curl -s "$FRASE" > /dev/null;
+                                        fi;
                                 fi;
                                 echo "$ACTDESCR" >> monitoring.downstate;
                         fi;
