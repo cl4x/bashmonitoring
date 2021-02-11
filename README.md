@@ -11,6 +11,7 @@ need: curl and nmap
 - add retry
 - add monitoring server name
 - add Telegram API for alerting on Group
+- add night silent mode
 
 
 ---------------
