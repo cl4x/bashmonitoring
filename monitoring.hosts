@@ -1,4 +1,4 @@
-#TIPODICONTROLLO;DESCRIZIONE;HOST[;OPTION]
+#SCALATEMPORALENOTIFICA;TIPODICONTROLLO;DESCRIZIONE;HOST[;OPTION]
 #scala temporale: 0 = non inviare notifiche telegram; 1 = invia le notifiche solo di giorno (dalle DAYFROM alle DAYTO del file di configurazione); 2 = invia le notifiche sempre
 #tipologie di controlli:
 #iochtml: si aspetta di trovare un file con dentro scritto iocisono
@@ -9,7 +9,10 @@
 #
 #example
 2;ping;CloudFlare DNS;1.1.1.1
+#invia sempre notifiche telegram se non riesci a pingare 1.1.1.1
 0;porta;Https su Repubblica;www.repubblica.it;443
+#segnala a video e basta se http su repubblica è inaccessibile ma non inviare notifiche telegram
 1;porta;SMTP Gmail;gmail-smtp-in.l.google.com;25
+#invia notifiche telegram solo negli orari diurni se la porta 25 di gmail risulta inaccessibile
 0;porta;TestDown;11.22.33.44;11111
 0;strhtml;Mozilla IT;https://www.mozilla.org/it/;Newsletter-mozilla-and-you
