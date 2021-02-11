@@ -1,5 +1,5 @@
 #TIPODICONTROLLO;DESCRIZIONE;HOST[;OPTION]
-#scala temporale: 0 = non inviare notifiche telegram; 1 = invia le notifiche solo di giorno (8-19); 2 = invia le notifiche sempre
+#scala temporale: 0 = non inviare notifiche telegram; 1 = invia le notifiche solo di giorno (dalle DAYFROM alle DAYTO del file di configurazione); 2 = invia le notifiche sempre
 #tipologie di controlli:
 #iochtml: si aspetta di trovare un file con dentro scritto iocisono
 #ping: effettua un ping
