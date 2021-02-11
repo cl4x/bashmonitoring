@@ -1,4 +1,5 @@
 #TIPODICONTROLLO;DESCRIZIONE;HOST[;OPTION]
+#scala temporale: 0 = non inviare notifiche telegram; 1 = invia le notifiche solo di giorno (8-19); 2 = invia le notifiche sempre
 #tipologie di controlli:
 #iochtml: si aspetta di trovare un file con dentro scritto iocisono
 #ping: effettua un ping
@@ -7,8 +8,8 @@
 #
 #
 #example
-ping;CloudFlare DNS;1.1.1.1
-porta;Https su Repubblica;www.repubblica.it;443
-porta;SMTP Gmail;gmail-smtp-in.l.google.com;25
-porta;TestDown;11.22.33.44;11111
-strhtml;Mozilla IT;https://www.mozilla.org/it/;Newsletter-mozilla-and-you
+2;ping;CloudFlare DNS;1.1.1.1
+0;porta;Https su Repubblica;www.repubblica.it;443
+1;porta;SMTP Gmail;gmail-smtp-in.l.google.com;25
+0;porta;TestDown;11.22.33.44;11111
+0;strhtml;Mozilla IT;https://www.mozilla.org/it/;Newsletter-mozilla-and-you
