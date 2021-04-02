@@ -100,13 +100,13 @@ check () {
                 fi
 
                 if [ "$ACTTIPO" == "porta" ]; then
-                        REPLY=$( nmap -n -p $ACTOPZIONE $ACTHOST | grep "open" | wc -l );
+                        REPLY=$( nmap -Pn -p $ACTOPZIONE $ACTHOST | grep "open" | wc -l );
                         if [ "$REPLY" != "1" ]; then
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
                                                 tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
-                                                REPLY=$( nmap -n -p $ACTOPZIONE $ACTHOST | grep "open" | wc -l );
+                                                REPLY=$( nmap -Pn -p $ACTOPZIONE $ACTHOST | grep "open" | wc -l );
                                         fi
                                 sleep 2
                                 let RETRYCOUNT=RETRYCOUNT+1
