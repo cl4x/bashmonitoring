@@ -1,6 +1,9 @@
 #!/bin/bash
 
 echo "Controllo preliminare..."
+PROCESSISPRES=$( ps -fax | grep monitoring | grep -vw "grep" | wc -l )
+if [ $PROCESSISPRES -ge 3 ]; then echo "Un altro processo risulta attivo. Esco."; exit 1; fi
+
 INNMAP=$( apt list nmap | grep installato | wc -l )
 if [ "$INNMAP" != "1" ]; then echo "Installo NMAP..."; apt install nmap; fi
 INCURL=$( apt list nmap | grep installato | wc -l )
@@ -74,9 +77,9 @@ check () {
                         if [ "$REPLY" != "1" ]; then
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
-                                        if [ "$REPLY" != "1" ]; then 
+                                        if [ "$REPLY" != "1" ]; then
                                                 tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
-                                                REPLY=$( curl -s $ACTHOST | grep "iocisono" | wc -l ); 
+                                                REPLY=$( curl -s $ACTHOST | grep "iocisono" | wc -l );
                                         fi
                                 sleep 2
                                 let RETRYCOUNT=RETRYCOUNT+1
@@ -121,7 +124,7 @@ check () {
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
                                                 tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
-                                                REPLY=$( curl -s $ACTHOST | grep "$ACTOPZIONE" | wc -l );
+                                                REPLY=$( curl -s -k $ACTHOST | grep "$ACTOPZIONE" | wc -l );
                                         fi
                                 sleep 2
                                 let RETRYCOUNT=RETRYCOUNT+1
@@ -129,7 +132,7 @@ check () {
                         fi;
                 fi
 
-                if [ "$REPLY" == "1" ]; then 
+                if [ "$REPLY" == "1" ]; then
                         tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
                         tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
                         tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
@@ -141,10 +144,10 @@ check () {
                         if [ "$DOWNSTATE" == "1" ]; then
                                 if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
                                         DATALOG=$( date +%c );
-                                        echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
+                                        echo "$DATALOG - HOST UP - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
                                 fi;
                                 if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
-                                        NOTIFICAUNO=0; 
+                                        NOTIFICAUNO=0;
                                         ORANOW=$( date +%k | awk '{ print $1 }' );
                                         if [ "$ACTNOTIFICA" == "1" ] && [ $ORANOW -ge $DAYFROM ] && [ $ORANOW -le $DAYTO ]; then NOTIFICAUNO=1; fi;
                                         if [ "$ACTNOTIFICA" == "2" ] || [ "$NOTIFICAUNO" == "1" ]; then
@@ -152,9 +155,9 @@ check () {
                                                 curl -s "$FRASE" > /dev/null;
                                         fi;
                                 fi;
-                                sed -i /$ACTDESCR/d monitoring.downstate > /dev/null;
+                                sed -i /"$ACTDESCR"/d monitoring.downstate > /dev/null;
                         fi;
-                else 
+                else
                         tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
                         tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
                         tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
@@ -169,7 +172,7 @@ check () {
                                         echo "$DATALOG - HOST DOWN - $ACTDESCR - $ACTHOST ( Controllo $ACTTIPO - tentativi $RETRY )" >> $LOGPATH;
                                 fi;
                                 if [ "$TELEGRAMBOTENABLE" == "1" ] && [ "$TELEGRAMAPIBOT" != "" ] && [ "$TELEGRAMCHATID" != "" ]; then
-                                        NOTIFICAUNO=0; 
+                                        NOTIFICAUNO=0;
                                         ORANOW=$( date +%k | awk '{ print $1 }' );
                                         if [ "$ACTNOTIFICA" == "1" ] && [ $ORANOW -ge $DAYFROM ] && [ $ORANOW -le $DAYTO ]; then NOTIFICAUNO=1; fi;
                                         if [ "$ACTNOTIFICA" == "2" ] || [ "$NOTIFICAUNO" == "1" ]; then
@@ -182,16 +185,16 @@ check () {
                 fi
 
                 let COUNT=COUNT+1
-                if [ $TOTCHECK -gt 1 ]; then 
-                        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC"; 
-                        sleep $SLEEPTIME; 
-                        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; 
+                if [ $TOTCHECK -gt 1 ]; then
+                        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
+                        sleep $SLEEPTIME;
+                        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
                 fi
         done
         tput cup $ACTVIDEOLINE 0; echo -e "  "
         tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
-        sleep $SLEEPPROC; 
-        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; 
+        sleep $SLEEPPROC;
+        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
         let TOTCHECK=TOTCHECK+1
         check
 }
