@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Controllo preliminare..."
-PROCESSISPRES=$( ps -fax | grep monitoring | grep -vw "grep" | wc -l )
+PROCESSISPRES=$( ps -fax | grep "monitoring.sh" | grep -vw "grep" | wc -l )
 if [ $PROCESSISPRES -ge 3 ]; then echo "Un altro processo risulta attivo. Esco."; exit 1; fi
 
 INNMAP=$( apt list nmap | grep installato | wc -l )
@@ -20,6 +20,13 @@ TELEGRAMCHATID=$( cat monitoring.conf | grep "^TELEGRAMCHATID" | awk -F"=" '{ pr
 if [ -f monitoring.downstate ]; then rm monitoring.downstate; fi
 touch monitoring.downstate
 
+if [ $1 == "bg" ]; then
+        echo "BG MODE!"
+        U="bg"
+        sleep 2;
+else
+        U="fg";
+fi
 
 red='\e[0;31m'
 RED='\e[1;31m'
@@ -59,9 +66,9 @@ check () {
         COUNT=1
         TOTCOUNT=$( cat monitoring.hosts | grep -v "^#" | wc -l )
 
-        tput cup 0 0; echo -e "$YELLOW ============================================================================ $TOTCHECK ===================================================================================="
-        tput cup 0 25; echo $( date +%c )
-        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
+        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$YELLOW ============================================================================ $TOTCHECK ===================================================================================="; fi
+        if [ $U != "bg" ]; then tput cup 0 25; echo $( date +%c ); fi
+        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; fi
 
         while [ $COUNT -le $TOTCOUNT ]; do
                 ACTNOTIFICA=$( cat monitoring.hosts | grep -v "^#" | sed -n $COUNT\p | awk -F";" '{ print $1 }' )
@@ -78,7 +85,7 @@ check () {
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
-                                                tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
+                                                if [ $U != "bg" ]; then tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC"; fi;
                                                 REPLY=$( curl -s $ACTHOST | grep "iocisono" | wc -l );
                                         fi
                                 sleep 2
@@ -93,7 +100,7 @@ check () {
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
-                                                tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
+                                                if [ $U != "bg" ]; then tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC"; fi;
                                                 REPLY=$( ping -c 1 -W 2 $ACTHOST | grep "1 received" | wc -l );
                                         fi
                                 sleep 2
@@ -108,7 +115,7 @@ check () {
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
-                                                tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
+                                                if [ $U != "bg" ]; then tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC"; fi;
                                                 REPLY=$( nmap -Pn -p $ACTOPZIONE $ACTHOST | grep "open" | wc -l );
                                         fi
                                 sleep 2
@@ -123,7 +130,7 @@ check () {
                                 RETRYCOUNT=1
                                 while [ $RETRYCOUNT -le $RETRY ]; do
                                         if [ "$REPLY" != "1" ]; then
-                                                tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC";
+                                                if [ $U != "bg" ]; then tput cup 0 0; echo -e "$RED$BLINK >>> Retry $RETRYCOUNT    $NC"; fi;
                                                 REPLY=$( curl -s -k $ACTHOST | grep "$ACTOPZIONE" | wc -l );
                                         fi
                                 sleep 2
@@ -133,13 +140,13 @@ check () {
                 fi
 
                 if [ "$REPLY" == "1" ]; then
-                        tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
-                        tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
-                        tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
-                        tput cup $ACTVIDEOLINE 7; echo -e "$GREEN [ Host UP ]$NC";
-                        tput cup $ACTVIDEOLINE 20; echo -e "$YELLOW $ACTDESCR";
-                        tput cup $ACTVIDEOLINE 53; echo -e "$CYAN Tipologia controllo $GREEN $ACTTIPO"
-                        tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC";
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINEPRE 0; echo -e "  "; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 7; echo -e "$GREEN [ Host UP ]$NC"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 20; echo -e "$YELLOW $ACTDESCR"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 53; echo -e "$CYAN Tipologia controllo $GREEN $ACTTIPO"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $GREEN $ACTHOST $NC"; fi;
                         DOWNSTATE=$( cat monitoring.downstate | grep "$ACTDESCR" | wc -l )
                         if [ "$DOWNSTATE" == "1" ]; then
                                 if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
@@ -158,13 +165,13 @@ check () {
                                 sed -i /"$ACTDESCR"/d monitoring.downstate > /dev/null;
                         fi;
                 else
-                        tput cup $ACTVIDEOLINEPRE 0; echo -e "  "
-                        tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"
-                        tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"
-                        tput cup $ACTVIDEOLINE 7; echo -e "$RED$BLINK [Host DOWN]$NC"
-                        tput cup $ACTVIDEOLINE 20; echo -e "$NC$BGREDWHITE $ACTDESCR $NC$CYAN$BLINK"
-                        tput cup $ACTVIDEOLINE 53; echo -e " Tipologia controllo $RED $ACTTIPO";
-                        tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $RED $ACTHOST $NC";
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINEPRE 0; echo -e "  "; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 0; echo -e "$BLINK >$NC"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 2; echo -e "$YELLOW $TOTCHECK"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 7; echo -e "$RED$BLINK [Host DOWN]$NC"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 20; echo -e "$NC$BGREDWHITE $ACTDESCR $NC$CYAN$BLINK"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 53; echo -e " Tipologia controllo $RED $ACTTIPO"; fi;
+                        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 85; echo -e "$CYAN Verifica dell'host $RED $ACTHOST $NC"; fi;
                         DOWNSTATE=$( cat monitoring.downstate | grep "$ACTDESCR" | wc -l )
                         if [ "$DOWNSTATE" == "0" ]; then
                                 if [ "$LOGENABLE" == "1" ] && [ "$LOGPATH" != "" ]; then
@@ -186,15 +193,15 @@ check () {
 
                 let COUNT=COUNT+1
                 if [ $TOTCHECK -gt 1 ]; then
-                        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
+                        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC"; fi;
                         sleep $SLEEPTIME;
-                        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
+                        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; fi;
                 fi
         done
-        tput cup $ACTVIDEOLINE 0; echo -e "  "
-        tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC";
+        if [ $U != "bg" ]; then tput cup $ACTVIDEOLINE 0; echo -e "  "; fi;
+        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$YELLOW$BLINK <<< Sleep...  $NC"; fi;
         sleep $SLEEPPROC;
-        tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC";
+        if [ $U != "bg" ]; then tput cup 0 0; echo -e "$GREEN$BLINK >>> Running... $NC"; fi;
         let TOTCHECK=TOTCHECK+1
         check
 }
