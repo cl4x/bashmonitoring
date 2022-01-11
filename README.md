@@ -12,7 +12,7 @@ need: curl and nmap
 - add monitoring server name
 - add Telegram API for alerting on Group
 - add night silent mode
-
+- add silent mode with "./monitoring bg" (for script and daemonization)
 
 ---------------
 info: https://claudiodabbicco.blogspot.com/2020/12/monitorare-gli-host-in-maniera-semplice.html
